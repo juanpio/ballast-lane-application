@@ -11,6 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
         ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
     builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 
+    // Infrastructure
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+
+    // Application
+    builder.Services.AddScoped<RegisterUserCommandHandler>();
+    builder.Services.AddScoped<RegisterUserValidator>();
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
