@@ -1,4 +1,10 @@
 {
+    // Hide binary files from the file explorer
+    "files.exclude": {
+        "**/frontend/node_modules": true,
+        "**/bin": true,
+        "**/obj": true
+    },
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
             "file": ".github/copilot-commit-message-instructions.md"
