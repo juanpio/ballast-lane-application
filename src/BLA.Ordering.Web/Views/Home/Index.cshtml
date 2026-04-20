@@ -1,0 +1,19 @@
+@section Meta {
+    <title>Dashboard - Ballast Lane</title>
+    <meta name="robots" content="noindex, nofollow" />
+}
+
+<div class="min-h-screen p-8 bg-gray-50">
+    <div class="mx-auto max-w-4xl bg-white rounded-lg shadow p-8">
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p class="mt-2 text-gray-600">You are authenticated with a cookie session.</p>
+
+        <form asp-controller="Account" asp-action="Logout" method="post" class="mt-8">
+            @Html.AntiForgeryToken()
+            <button type="submit"
+                    class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                Logout
+            </button>
+        </form>
+    </div>
+</div>
