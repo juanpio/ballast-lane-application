@@ -1,128 +1,83 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { OrderCreate } from '../components/OrderCreate';
 
 describe('OrderCreate', () => {
-  describe('initial state', () => {
-    it('should render create order form', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      expect(screen.getByText('Create New Order')).toBeInTheDocument();
-    });
+  it('renders create order form with key fields', () => {
+    render(<OrderCreate />);
 
-    it('should have customer ID input field', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add assertion for customer ID field
-    });
+    expect(screen.getByText('Create New Order')).toBeInTheDocument();
+    expect(screen.getByLabelText('Customer ID *')).toBeInTheDocument();
+    expect(screen.getByText('Order Items *')).toBeInTheDocument();
+    expect(screen.getByText('Order Summary')).toBeInTheDocument();
+  });
 
-    it('should have items section', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add assertion for items section
-    });
+  it('adds and removes line items', async () => {
+    const user = userEvent.setup();
+    render(<OrderCreate />);
 
-    it('should have order summary section', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add assertion for summary
+    expect(screen.getAllByTestId(/create-item-row-/)).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Add Item' }));
+    expect(screen.getAllByTestId(/create-item-row-/)).toHaveLength(2);
+
+    await user.click(screen.getByRole('button', { name: 'Remove item 2' }));
+    expect(screen.getAllByTestId(/create-item-row-/)).toHaveLength(1);
+  });
+
+  it('updates subtotal when quantity and price change', async () => {
+    const user = userEvent.setup();
+    render(<OrderCreate />);
+
+    await user.clear(screen.getByLabelText('Product Name 1'));
+    await user.type(screen.getByLabelText('Product Name 1'), 'Mouse');
+    await user.clear(screen.getByLabelText('Quantity 1'));
+    await user.type(screen.getByLabelText('Quantity 1'), '2');
+    await user.clear(screen.getByLabelText('Unit Price 1'));
+    await user.type(screen.getByLabelText('Unit Price 1'), '49.5');
+
+    expect(screen.getByTestId('create-subtotal')).toHaveTextContent('99.00');
+    expect(screen.getByTestId('create-total')).toHaveTextContent('99.00');
+  });
+
+  it('shows validation when required values are missing', async () => {
+    const user = userEvent.setup();
+    render(<OrderCreate onSubmit={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Create Order' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Customer ID is required');
+  });
+
+  it('submits normalized payload', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<OrderCreate onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText('Customer ID *'), ' CUST-99 ');
+    await user.clear(screen.getByLabelText('Product Name 1'));
+    await user.type(screen.getByLabelText('Product Name 1'), ' Keyboard ');
+    await user.clear(screen.getByLabelText('Quantity 1'));
+    await user.type(screen.getByLabelText('Quantity 1'), '3');
+    await user.clear(screen.getByLabelText('Unit Price 1'));
+    await user.type(screen.getByLabelText('Unit Price 1'), '25');
+
+    await user.click(screen.getByRole('button', { name: 'Create Order' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      customerId: 'CUST-99',
+      items: [{ productName: 'Keyboard', quantity: 3, unitPrice: 25 }],
     });
   });
 
-  describe('loading state', () => {
-    it('should show loading indicator', () => {
-      // TODO: Implement test
-      render(<OrderCreate isLoading={true} />);
-      // TODO: Add assertion for loading state
-    });
+  it('calls onCancel and disables submit while loading', async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    render(<OrderCreate isLoading={true} onCancel={onCancel} onSubmit={vi.fn()} />);
 
-    it('should disable submit button when loading', () => {
-      // TODO: Implement test
-      render(<OrderCreate isLoading={true} />);
-      // TODO: Add assertion
-    });
-  });
-
-  describe('error state', () => {
-    it('should display error message', () => {
-      // TODO: Implement test
-      const errorMsg = 'Validation error';
-      render(<OrderCreate error={errorMsg} />);
-      expect(screen.getByTestId('order-create-error')).toHaveTextContent(errorMsg);
-    });
-  });
-
-  describe('item management', () => {
-    it('should allow adding items', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add interaction to add item and assertion
-    });
-
-    it('should allow removing items', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add interaction and assertion
-    });
-
-    it('should calculate item totals', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add interaction and assertion
-    });
-
-    it('should update order summary when items change', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Add interaction and assertion
-    });
-  });
-
-  describe('form submission', () => {
-    it('should call onSubmit with form data', () => {
-      // TODO: Implement test
-      const onSubmit = vi.fn();
-      render(<OrderCreate onSubmit={onSubmit} />);
-      // TODO: Fill form and submit
-      // TODO: Assert onSubmit called with correct data
-    });
-
-    it('should validate required fields', () => {
-      // TODO: Implement test
-      render(<OrderCreate />);
-      // TODO: Try to submit empty form
-      // TODO: Verify validation error shown
-    });
-  });
-
-  describe('actions', () => {
-    it('should call onCancel when cancel button clicked', () => {
-      // TODO: Implement test
-      const onCancel = vi.fn();
-      render(<OrderCreate onCancel={onCancel} />);
-      // TODO: Click cancel and assert
-    });
-
-    it('should call onSubmit when submit button clicked', () => {
-      // TODO: Implement test
-      const onSubmit = vi.fn();
-      render(<OrderCreate onSubmit={onSubmit} />);
-      // TODO: Fill form and click submit
-      // TODO: Assert onSubmit called
-    });
-  });
-
-  describe('accessibility', () => {
-    it('should have proper form labels', () => {
-      // TODO: Implement accessibility test
-      render(<OrderCreate />);
-      // TODO: Add accessibility assertions
-    });
-
-    it('should be keyboard navigable', () => {
-      // TODO: Implement keyboard navigation test
-      render(<OrderCreate />);
-      // TODO: Add keyboard interaction assertions
-    });
+    expect(screen.getByRole('button', { name: 'Creating...' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });

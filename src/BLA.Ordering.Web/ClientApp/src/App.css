@@ -5,6 +5,54 @@
   box-sizing: border-box;
 }
 
+.auth-panel {
+  width: min(480px, 100%);
+  margin: 3rem auto;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.auth-panel h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.auth-panel p {
+  margin: 0.5rem 0 1rem;
+  color: #4b5563;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.auth-form input {
+  height: 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-form button {
+  height: 2.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #111827;
+  color: #ffffff;
+}
+
+.auth-error {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .dashboard-header {
   display: flex;
   gap: 1rem;
@@ -54,6 +102,38 @@
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
   padding: 1rem;
+}
+
+.order-delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.order-delete-card {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.order-delete-card h2 {
+  margin-top: 0;
+}
+
+.order-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.order-delete-error {
+  margin: 0.5rem 0;
+  color: #991b1b;
 }
 
 @media (max-width: 768px) {
