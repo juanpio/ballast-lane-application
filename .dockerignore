@@ -1,0 +1,17 @@
+.git
+.github
+.vscode
+.vs
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.vite
+**/.cache
+**/coverage
+**/TestResults
+.env
+.env.*
+*.user
+*.suo
+*.log

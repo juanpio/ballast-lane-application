@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bla-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bla_ordering}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bla_ordering}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  seq:
+    image: datalust/seq:latest
+    container_name: bla-seq
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    ports:
+      - "5341:80"
+    volumes:
+      - seq_data:/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: bla-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: bla-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_WATCH_LAUNCH_BROWSER: "false"
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bla_ordering};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Serilog__WriteTo__1__Args__serverUrl: http://seq:80
+    ports:
+      - "5178:5178"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seq:
+        condition: service_started
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./:/workspace
+
+volumes:
+  postgres_data:
+  seq_data:

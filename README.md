@@ -193,18 +193,24 @@ cd ballast-lane-application
 cp .env.example .env
 
 # Start all services (backend, frontend, Postgres, Seq, Jaeger)
-docker-compose up
+docker compose up --build
 ```
 
 Once running:
 
 | Service | URL |
 |---|---|
-| Application | http://localhost:5000 |
+| Application | http://localhost:5178 |
 | Vite Dev Server (HMR) | http://localhost:5173 |
 | Seq (logs) | http://localhost:5341 |
 | Jaeger (traces) | http://localhost:16686 |
 | PostgreSQL | localhost:5432 |
+
+To stop and remove containers:
+
+```bash
+docker compose down
+```
 
 ### Manual Setup (without Docker)
 
@@ -252,6 +258,21 @@ cd tests/cypress && npx cypress run
 # Storybook (component documentation)
 cd src/Web/ClientApp && npm run storybook
 ```
+
+## CI/CD Workflows
+
+GitHub Actions workflow: `.github/workflows/ci.yml`
+
+- Pull requests to `main` run:
+    - Backend build + unit tests with line coverage gate (90%)
+    - Frontend lint + test coverage gate
+    - Backend integration tests
+    - Docker production image build validation
+    - Bundle analysis artifact (`dist/bundle-stats.html`)
+- Pushes to `main` run all CI jobs and a staging deploy placeholder job.
+- Version tags (`v*`) run all CI jobs and a production deploy placeholder job.
+
+The deploy jobs are intentionally placeholders until registry and Terraform wiring is added.
 
 ### Coverage Targets
 
