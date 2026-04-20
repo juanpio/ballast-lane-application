@@ -1,6 +1,9 @@
 using BLA.Ordering.Application.Auth;
 using BLA.Ordering.Application.Auth.Commands;
 using BLA.Ordering.Application.Auth.Validators;
+using BLA.Ordering.Application.Orders.Commands;
+using BLA.Ordering.Application.Orders.Queries;
+using BLA.Ordering.Application.Orders.Validators;
 using BLA.Ordering.Domain.Interfaces;
 using BLA.Ordering.Infrastructure.Auth;
 using BLA.Ordering.Infrastructure.Persistence.Repositories;
@@ -88,6 +91,7 @@ try
 
     // Infrastructure
     builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>();
     builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
     builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
@@ -96,6 +100,14 @@ try
     builder.Services.AddScoped<RegisterUserValidator>();
     builder.Services.AddScoped<AuthenticateUserCommandHandler>();
     builder.Services.AddScoped<AuthenticateUserValidator>();
+    builder.Services.AddScoped<CreateOrderCommandHandler>();
+    builder.Services.AddScoped<UpdateOrderCommandHandler>();
+    builder.Services.AddScoped<DeleteOrderCommandHandler>();
+    builder.Services.AddScoped<GetOrderByIdQueryHandler>();
+    builder.Services.AddScoped<GetOrdersQueryHandler>();
+    builder.Services.AddScoped<CreateOrderValidator>();
+    builder.Services.AddScoped<UpdateOrderValidator>();
+    builder.Services.AddScoped<DeleteOrderValidator>();
 
     // Web
     builder.Services.AddControllersWithViews();
