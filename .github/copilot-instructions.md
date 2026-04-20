@@ -36,6 +36,38 @@ This application uses a hybrid .NET 10 + React architecture with Clean Architect
 	- `auth` schema stores identity/authentication data.
 	- `domain` schema stores business data such as orders.
 
+### Database Modeling Guidelines
+
+Database schema design must prioritize normalization, predictable storage usage, and explicit data boundaries.
+
+- Normalize transactional tables to at least Third Normal Form (3NF) unless there is a documented performance reason to denormalize.
+- Model one concept per table and enforce relationships with explicit foreign keys, unique constraints, and check constraints.
+- Define the minimum appropriate data type and size for every column based on real domain limits.
+- Avoid unbounded or oversized string definitions by default. Do not use `TEXT`, unbounded `VARCHAR`, or database-specific max-length variants unless there is a documented requirement.
+- Use bounded `VARCHAR(n)` with justified limits for identifiers, codes, names, and other constrained strings.
+- Prefer specific numeric types (`SMALLINT`, `INTEGER`, `BIGINT`, `NUMERIC(p,s)`) based on expected ranges instead of defaulting to larger types.
+- Use `BOOLEAN` for flags, `DATE` for date-only values, and `TIMESTAMPTZ` for point-in-time values that cross time zones.
+- Store large payloads (free-form documents, blobs, large audit snapshots) outside hot transactional tables when possible and reference them by key.
+- Add indexes intentionally for query patterns and avoid over-indexing columns with low selectivity or rare lookups.
+- Document every intentional exception to normalization or bounded sizing in ADRs or schema migration notes.
+
+### PostgreSQL Optimization Guidelines
+
+PostgreSQL performance considerations should be addressed proactively during schema and query design, not only after incidents.
+
+- Design indexes from real access patterns. Prioritize filter, join, and sort columns used in production queries.
+- Prefer composite indexes with column order matching the most common predicates and `ORDER BY` clauses.
+- Use partial indexes when queries consistently target subsets such as active or non-deleted rows.
+- Validate important queries with `EXPLAIN (ANALYZE, BUFFERS)` before and after schema changes.
+- Keep query projections narrow. Select only needed columns instead of `SELECT *` in repository SQL.
+- Prefer server-side pagination with stable ordering. Use keyset pagination for high-volume lists when offset costs become significant.
+- Keep transactions short and deterministic to reduce lock contention and improve concurrency.
+- Use `INSERT ... ON CONFLICT` patterns intentionally for idempotent writes where uniqueness constraints apply.
+- Plan schema changes to minimize blocking: prefer additive migrations first, then backfill, then constraint tightening in later steps.
+- Monitor table and index bloat, autovacuum behavior, and slow query trends as part of regular operational checks.
+- Ensure statistics stay fresh after bulk data changes so the planner can choose efficient plans.
+- Add performance checks to integration scenarios for critical queries (for example, pagination and filtered search paths) to catch regressions early.
+
 ## Scaffolding Rules
 
 Generate code into the target structure below. If the folders do not exist yet, scaffold them exactly with these boundaries.
@@ -232,6 +264,36 @@ Write modern C# that is explicit, testable, and easy to read.
 - Do not place SQL in controllers.
 - Do not add Entity Framework, Dapper, or any ORM abstraction unless an ADR explicitly changes the rule.
 
+### Async And Cancellation For ADO.NET
+
+ADO.NET persistence code must be fully async and cancellation-aware.
+
+- Accept a `CancellationToken` on async repository, application service, and API methods that can perform I/O.
+- Pass the same `CancellationToken` through every async boundary down to ADO.NET calls such as `OpenAsync`, `ExecuteReaderAsync`, `ExecuteNonQueryAsync`, `ExecuteScalarAsync`, and `ReadAsync`.
+- Do not create replacement tokens or silently use `CancellationToken.None` unless there is a deliberate and documented reason.
+- Use `await using` for connections, commands, readers, and transactions when the type supports async disposal.
+- Prefer one connection per operation scope unless an explicit transaction requires sharing the same open connection.
+- Keep database work sequential inside a connection unless there is a clear reason and the provider usage is safe for concurrency.
+- Do not block on async database code with `.Result`, `.Wait()`, or sync-over-async wrappers.
+- Keep command timeout, cancellation, and exception behavior explicit so aborted requests do not continue expensive database work in the background.
+- Surface `OperationCanceledException` appropriately; do not convert cancellations into generic application errors.
+- For long-running queries or bulk operations, verify cancellation is propagated through command execution and result streaming.
+- Prefer buffered materialization only when needed. When reading multiple rows, iterate with `ReadAsync(cancellationToken)` and map results explicitly.
+- Open connections as late as possible and dispose them as early as possible to avoid holding scarce database resources during unrelated work.
+
+### Database Connection Pooling
+
+ADO.NET repository code must cooperate with Npgsql connection pooling rather than fight it.
+
+- Rely on the provider connection pool from the configured connection string; do not build custom in-memory connection caches or singleton open connections.
+- Open a connection immediately before database work starts and dispose it immediately after the operation completes so it returns to the pool quickly.
+- Keep transactions, readers, and commands short-lived because they hold pooled connections longer and reduce overall throughput under load.
+- Avoid performing unrelated CPU work, HTTP calls, or lengthy business logic while a database connection is open.
+- Keep pooling configuration such as minimum pool size, maximum pool size, timeouts, and multiplexing decisions in environment-specific connection string settings, not scattered across code.
+- Treat pool exhaustion, timeout spikes, or long-held connections as operational signals that should be observable through logs, metrics, and health diagnostics.
+- For bulk or concurrent workloads, design repository code so connection usage scales predictably and does not open more simultaneous connections than the workload requires.
+- In tests, dispose connections and containers cleanly so the suite does not hide pool-leak problems or pass only because resources are eventually reclaimed.
+
 ### C# Style
 
 - Use `PascalCase` for public types and members.
@@ -362,6 +424,22 @@ These are not optional implementation details.
 - Keep logs structured and centralized through Serilog-based infrastructure.
 - Preserve correlation and trace context.
 - Do not log secrets, tokens, passwords, or other sensitive PII.
+
+### Monitoring Guidelines
+
+Monitoring must align with the observability ADRs and support local development, CI, and AWS production environments.
+
+- Instrument backend request flows, key application services, and database calls so logs, traces, and metrics can be correlated through `TraceId`, `SpanId`, and correlation identifiers.
+- Prefer centralized monitoring hooks in middleware, decorators, infrastructure services, and shared telemetry components rather than ad hoc logging or metrics inside controllers and UI components.
+- Expose health checks for application and dependency readiness/liveness where appropriate, especially for database connectivity and critical infrastructure dependencies.
+- Emit metrics for operationally meaningful events such as request latency, error rate, database query duration, authentication failures, and queue or background workload health if those capabilities exist.
+- Keep metrics and alerts focused on actionable signals. Avoid emitting noisy counters or high-cardinality dimensions that make dashboards expensive or difficult to use.
+- For local development, target Seq and Jaeger, with optional Prometheus/Grafana support when metric visualization is needed.
+- For production, target CloudWatch Logs, AWS X-Ray, CloudWatch Metrics, alarms, and dashboards through configuration and Terraform-managed observability resources.
+- Keep environment-specific monitoring configuration in `appsettings.{Environment}.json`, infrastructure configuration, or deployment settings rather than hardcoding sinks or exporters in application logic.
+- Forward frontend performance and runtime telemetry only through approved shared services. Use `web-vitals` for Core Web Vitals reporting and preserve user privacy when capturing client-side errors.
+- Monitoring data must never include secrets, raw tokens, passwords, or sensitive PII. Redact or hash identifiers when business diagnostics require reference values.
+- When adding a new backend capability, consider whether it needs trace spans, metric emission, health check participation, dashboard visibility, or alert thresholds as part of the implementation.
 
 ## Things To Avoid
 
