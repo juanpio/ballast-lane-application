@@ -4,8 +4,12 @@ using BLA.Ordering.Application.Auth.Validators;
 using BLA.Ordering.Domain.Interfaces;
 using BLA.Ordering.Infrastructure.Auth;
 using BLA.Ordering.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Serilog;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -31,13 +35,42 @@ try
         ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
     builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 
+    // Authentication
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+        ?? throw new InvalidOperationException("Jwt:Issuer is not configured.");
+    var jwtAudience = builder.Configuration["Jwt:Audience"]
+        ?? throw new InvalidOperationException("Jwt:Audience is not configured.");
+    var jwtKey = builder.Configuration["Jwt:Key"]
+        ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+
+    builder.Services
+        .AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        })
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+        {
+            options.Cookie.Name = "bla.session";
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.LoginPath = "/account/login";
+            options.AccessDeniedPath = "/account/login";
+            options.SlidingExpiration = true;
+            options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        });
+
     // Infrastructure
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+    builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
     // Application
     builder.Services.AddScoped<RegisterUserCommandHandler>();
     builder.Services.AddScoped<RegisterUserValidator>();
+    builder.Services.AddScoped<AuthenticateUserCommandHandler>();
+    builder.Services.AddScoped<AuthenticateUserValidator>();
 
     // Web
     builder.Services.AddControllersWithViews();
@@ -55,6 +88,8 @@ try
 
     app.UseStaticFiles();
     app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     // Public landing page: registration
     app.MapGet("/", () => Results.Redirect("/account/create", permanent: false));
