@@ -1,120 +1,95 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useMemo, useState } from 'react'
+import { OrderGrid, OrderTable } from './features/orders'
+import type { OrderDto } from './features/orders'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [view, setView] = useState<'table' | 'grid'>('table')
+
+  const orders = useMemo<OrderDto[]>(
+    () => [
+      {
+        id: 'ord-1001',
+        customerId: 'customer-001',
+        orderNumber: 'BL-2026-1001',
+        status: 'pending',
+        totalAmount: 245.5,
+        currency: 'USD',
+        createdAt: '2026-04-20T14:20:00Z',
+        updatedAt: '2026-04-20T14:20:00Z',
+        items: [
+          {
+            id: 'item-1',
+            productName: 'Wireless Mouse',
+            quantity: 2,
+            unitPrice: 49.9,
+            totalPrice: 99.8,
+          },
+          {
+            id: 'item-2',
+            productName: 'Keyboard',
+            quantity: 1,
+            unitPrice: 145.7,
+            totalPrice: 145.7,
+          },
+        ],
+      },
+      {
+        id: 'ord-1002',
+        customerId: 'customer-001',
+        orderNumber: 'BL-2026-1002',
+        status: 'shipped',
+        totalAmount: 80,
+        currency: 'EUR',
+        createdAt: '2026-04-18T10:10:00Z',
+        updatedAt: '2026-04-19T09:30:00Z',
+        items: [
+          {
+            id: 'item-3',
+            productName: 'USB-C Cable',
+            quantity: 4,
+            unitPrice: 20,
+            totalPrice: 80,
+          },
+        ],
+      },
+    ],
+    [],
+  )
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <section className="dashboard">
+      <header className="dashboard-header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1>Orders Dashboard</h1>
+          <p>Authenticated users can manage orders from this React micro-frontend.</p>
         </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="dashboard-actions" role="group" aria-label="Orders view selector">
+          <button
+            type="button"
+            className={view === 'table' ? 'view-btn view-btn-active' : 'view-btn'}
+            onClick={() => setView('table')}
+          >
+            Table view
+          </button>
+          <button
+            type="button"
+            className={view === 'grid' ? 'view-btn view-btn-active' : 'view-btn'}
+            onClick={() => setView('grid')}
+          >
+            Grid view
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <main className="dashboard-main">
+        {view === 'table' ? (
+          <OrderTable orders={orders} total={orders.length} page={1} pageSize={10} />
+        ) : (
+          <OrderGrid orders={orders} />
+        )}
+      </main>
+    </section>
   )
 }
 
