@@ -252,8 +252,14 @@ cd src/Web/ClientApp && npm run test
 # Integration tests (requires Docker for Testcontainers)
 dotnet test tests/IntegrationTests
 
-# E2E tests (on-demand, with pre-seeded DB)
-cd tests/cypress && npx cypress run
+# E2E tests (local development in browser)
+cd tests/cypress && npm run open:auth
+
+# E2E tests (local headless smoke against localhost:5178)
+cd tests/cypress && npm run run:auth
+
+# E2E tests (CI/container headless smoke)
+docker compose --profile e2e run --rm cypress
 
 # Storybook (component documentation)
 cd src/Web/ClientApp && npm run storybook
@@ -264,11 +270,10 @@ cd src/Web/ClientApp && npm run storybook
 GitHub Actions workflow: `.github/workflows/ci.yml`
 
 - Pull requests to `main` run:
-    - Backend build + unit tests with line coverage gate (90%)
-    - Frontend lint + test coverage gate
-    - Backend integration tests
+    - Backend unit tests inside Docker test images with `.trx` and Cobertura artifacts published back to GitHub Actions
+    - Backend integration tests inside Docker test images with `.trx` and Cobertura artifacts published back to GitHub Actions
+    - Auth E2E smoke tests in the Cypress container
     - Docker production image build validation
-    - Bundle analysis artifact (`dist/bundle-stats.html`)
 - Pushes to `main` run all CI jobs and a staging deploy placeholder job.
 - Version tags (`v*`) run all CI jobs and a production deploy placeholder job.
 

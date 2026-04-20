@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  checks: write
+
 env:
   DOTNET_VERSION: "10.0.x"
   NODE_VERSION: "22"
@@ -18,19 +22,73 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Build backend unit test image
+        run: docker build --target backend-unit-tests -t ballast-lane-backend-unit-tests:latest .
+
+      - name: Run backend unit tests in containers
+        run: |
+          mkdir -p artifacts/backend-unit
+          exit_code=0
+
+          run_test() {
+            project_path="$1"
+            project_name="$2"
+
+            docker run --rm \
+              -v "$PWD/artifacts/backend-unit:/artifacts" \
+              ballast-lane-backend-unit-tests:latest \
+              /bin/sh -lc "mkdir -p '/artifacts/$project_name/test-results/$project_name' '/artifacts/$project_name/coverage/$project_name' && dotnet test '$project_path' --configuration Release --no-restore --verbosity normal --results-directory '/artifacts/$project_name/test-results/$project_name' --logger 'trx;LogFileName=$project_name.trx' /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='/artifacts/$project_name/coverage/$project_name/'" || exit_code=$?
+          }
+
+          run_test "tests/UnitTests/BLA.Ordering.Domain.Tests/BLA.Ordering.Domain.Tests.csproj" "BLA.Ordering.Domain.Tests"
+          run_test "tests/UnitTests/BLA.Ordering.Application.Tests/BLA.Ordering.Application.Tests.csproj" "BLA.Ordering.Application.Tests"
+          run_test "tests/UnitTests/BLA.Ordering.Infrastructure.Tests/BLA.Ordering.Infrastructure.Tests.csproj" "BLA.Ordering.Infrastructure.Tests"
+
+          exit "$exit_code"
+
+      - name: List backend unit test artifacts
+        if: always()
+        run: find artifacts/backend-unit -type f | sort || true
+
+      - name: Detect backend unit test artifacts
+        if: always()
+        id: detect-backend-unit-artifacts
+        run: |
+          if find artifacts/backend-unit -type f \( -name '*.trx' -o -name 'coverage.cobertura.xml' \) | grep -q .; then
+            echo "has_artifacts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_artifacts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish backend unit test results
+        if: always() && steps.detect-backend-unit-artifacts.outputs.has_artifacts == 'true'
+        uses: dorny/test-reporter@v1
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          name: Backend Unit Tests
+          path: artifacts/backend-unit/**/test-results/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: true
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Publish backend unit coverage summary
+        if: always() && steps.detect-backend-unit-artifacts.outputs.has_artifacts == 'true'
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: artifacts/backend-unit/**/coverage/*/coverage.cobertura.xml
+          badge: false
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
 
-      - name: Build (Release)
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Run unit tests
-        run: dotnet test tests/UnitTests --configuration Release --no-build --verbosity normal
+      - name: Upload backend unit coverage artifacts
+        if: always() && steps.detect-backend-unit-artifacts.outputs.has_artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-unit-artifacts
+          path: artifacts/backend-unit
+          if-no-files-found: warn
 
   backend-integration-tests:
     needs: backend-unit-tests
@@ -38,16 +96,85 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build backend test image
-        run: docker build --target backend-tests -t ballast-lane-backend-tests:latest .
+      - name: Build backend integration test image
+        run: docker build --target backend-integration-tests -t ballast-lane-backend-integration-tests:latest .
 
-      - name: Run integration tests in backend test image
-        run: docker run --rm --add-host=host.docker.internal:host-gateway -e TESTCONTAINERS_RYUK_DISABLED=true -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -v /var/run/docker.sock:/var/run/docker.sock ballast-lane-backend-tests:latest
+      - name: Run backend integration tests in container
+        run: |
+          mkdir -p artifacts/backend-integration
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            -e TESTCONTAINERS_RYUK_DISABLED=true \
+            -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD/artifacts/backend-integration:/artifacts" \
+            ballast-lane-backend-integration-tests:latest \
+            /bin/sh -lc "mkdir -p '/artifacts/BLA.Ordering.Web.API.Tests/test-results/BLA.Ordering.Web.API.Tests' '/artifacts/BLA.Ordering.Web.API.Tests/coverage/BLA.Ordering.Web.API.Tests' && dotnet test 'tests/IntegrationTests/BLA.Ordering.Web.API.Tests/BLA.Ordering.Web.API.Tests.csproj' --configuration Release --no-restore --verbosity normal --results-directory '/artifacts/BLA.Ordering.Web.API.Tests/test-results/BLA.Ordering.Web.API.Tests' --logger 'trx;LogFileName=BLA.Ordering.Web.API.Tests.trx' /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='/artifacts/BLA.Ordering.Web.API.Tests/coverage/BLA.Ordering.Web.API.Tests/'"
+
+      - name: Detect backend integration test artifacts
+        if: always()
+        id: detect-backend-integration-artifacts
+        run: |
+          if find artifacts/backend-integration -type f \( -name '*.trx' -o -name 'coverage.cobertura.xml' \) | grep -q .; then
+            echo "has_artifacts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_artifacts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish backend integration test results
+        if: always() && steps.detect-backend-integration-artifacts.outputs.has_artifacts == 'true'
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend Integration Tests
+          path: artifacts/backend-integration/**/test-results/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Publish backend integration coverage summary
+        if: always() && steps.detect-backend-integration-artifacts.outputs.has_artifacts == 'true'
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: artifacts/backend-integration/**/coverage/*/coverage.cobertura.xml
+          badge: false
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+
+      - name: Upload backend integration coverage artifacts
+        if: always() && steps.detect-backend-integration-artifacts.outputs.has_artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-integration-artifacts
+          path: artifacts/backend-integration
+          if-no-files-found: warn
+
+
+  auth-e2e-smoke-tests:
+    needs:
+      - backend-unit-tests
+      - backend-integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start backend stack
+        run: docker compose up -d --build backend postgres seq jaeger
+
+      - name: Run auth E2E smoke test in Cypress container
+        run: docker compose --profile e2e run --rm cypress
+
+      - name: Shutdown compose stack
+        if: always()
+        run: docker compose down -v
 
   docker-build:
     needs:
       - backend-unit-tests
       - backend-integration-tests
+      - auth-e2e-smoke-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

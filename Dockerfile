@@ -21,14 +21,15 @@ RUN dotnet restore BLA.Ordering.slnx
 COPY src ./src
 COPY tests ./tests
 
-FROM build AS backend-tests
+FROM build AS backend-unit-tests
+WORKDIR /src
+CMD ["/bin/sh"]
+
+FROM build AS backend-integration-tests
 WORKDIR /src
 ENV TESTCONTAINERS_RYUK_DISABLED=true
 ENV TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
-RUN dotnet test tests/UnitTests/BLA.Ordering.Domain.Tests/BLA.Ordering.Domain.Tests.csproj --configuration Release --no-restore --verbosity normal
-RUN dotnet test tests/UnitTests/BLA.Ordering.Application.Tests/BLA.Ordering.Application.Tests.csproj --configuration Release --no-restore --verbosity normal
-RUN dotnet test tests/UnitTests/BLA.Ordering.Infrastructure.Tests/BLA.Ordering.Infrastructure.Tests.csproj --configuration Release --no-restore --verbosity normal
-CMD ["dotnet", "test", "tests/IntegrationTests/BLA.Ordering.Web.API.Tests/BLA.Ordering.Web.API.Tests.csproj", "--configuration", "Release", "--no-restore", "--verbosity", "normal"]
+CMD ["/bin/sh"]
 
 FROM build AS publish
 WORKDIR /src

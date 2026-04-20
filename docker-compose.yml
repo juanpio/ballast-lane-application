@@ -59,6 +59,21 @@ services:
     volumes:
       - ./:/workspace
 
+  cypress:
+    image: cypress/included:14.5.4
+    container_name: bla-cypress
+    profiles:
+      - e2e
+    working_dir: /e2e
+    depends_on:
+      - backend
+    environment:
+      CI: "true"
+    volumes:
+      - ./tests/cypress:/e2e
+    entrypoint: ["/bin/sh", "-lc"]
+    command: ["npm ci && npm run run:auth:ci"]
+
 volumes:
   postgres_data:
   seq_data:
