@@ -87,6 +87,8 @@ services:
       - backend
     environment:
       CI: "true"
+    entrypoint: ["/bin/sh", "-lc"]
+    command: ["npm run run:auth:ci"]
 
   storybook:
     build:
