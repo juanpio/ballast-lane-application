@@ -1,0 +1,63 @@
+# OS
+.DS_Store
+
+# IDE / Editor
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET build artifacts
+**/bin/
+**/obj/
+artifacts/
+out/
+
+# .NET test artifacts
+TestResults/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.cobertura.xml
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# React / Vite / Node
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+**/.cache/
+
+# Storybook
+**/storybook-static/
+
+# Cypress artifacts
+**/cypress/screenshots/
+**/cypress/videos/
+**/cypress/downloads/
+
+# Frontend test caches/output
+**/.nyc_output/
+**/.vitest/
+**/playwright-report/
+**/test-results/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local tool output
+*.pid
+*.seed
