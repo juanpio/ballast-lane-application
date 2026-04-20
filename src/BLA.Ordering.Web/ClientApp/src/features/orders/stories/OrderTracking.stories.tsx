@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { OrderTracking } from '../components/OrderTracking';
-import { OrderDto, OrderTrackingEvent } from '../types';
+import type { OrderDto, OrderTrackingEvent } from '../types';
 
 const meta = {
   title: 'Features/Orders/OrderTracking',

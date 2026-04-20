@@ -1,4 +1,4 @@
-import { CreateOrderRequest, CreateOrderItemRequest } from '../types';
+import type { CreateOrderRequest } from '../types';
 
 interface OrderCreateProps {
   isLoading?: boolean;

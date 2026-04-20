@@ -4,12 +4,12 @@
  */
 
 import { useState } from 'react';
-import { OrderTrackingEvent } from '../types';
+import type { OrderTrackingEvent } from '../types';
 
-export function useOrderTracking(orderId: string | null) {
-  const [trackingEvents, setTrackingEvents] = useState<OrderTrackingEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useOrderTracking(_orderId: string | null) {
+  const [trackingEvents] = useState<OrderTrackingEvent[]>([]);
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   // TODO: Implement fetching logic with optional polling
   // const fetchTrackingEvents = async (id: string) => { ... }

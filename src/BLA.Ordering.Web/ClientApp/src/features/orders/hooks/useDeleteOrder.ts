@@ -6,8 +6,8 @@
 import { useState } from 'react';
 
 export function useDeleteOrder() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   // TODO: Implement mutation logic with optional confirmation
   // const deleteOrder = async (orderId: string) => { ... }

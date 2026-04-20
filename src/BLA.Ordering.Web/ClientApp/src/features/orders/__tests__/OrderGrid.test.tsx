@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { OrderGrid } from './OrderGrid';
-import { OrderDto } from '../types';
+import { OrderGrid } from '../components/OrderGrid';
+import type { OrderDto } from '../types';
 
 describe('OrderGrid', () => {
   const mockOrders: OrderDto[] = [

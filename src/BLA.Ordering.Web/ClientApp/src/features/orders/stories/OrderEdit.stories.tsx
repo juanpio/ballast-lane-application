@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { OrderEdit } from '../components/OrderEdit';
-import { OrderDto } from '../types';
+import type { OrderDto } from '../types';
 
 const meta = {
   title: 'Features/Orders/OrderEdit',

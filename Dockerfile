@@ -31,6 +31,30 @@ ENV TESTCONTAINERS_RYUK_DISABLED=true
 ENV TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
 CMD ["/bin/sh"]
 
+FROM node:22-alpine AS frontend-base
+WORKDIR /app
+COPY src/BLA.Ordering.Web/ClientApp/package*.json ./
+RUN npm ci
+COPY src/BLA.Ordering.Web/ClientApp .
+
+FROM frontend-base AS frontend-development
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
+FROM frontend-base AS frontend-storybook
+EXPOSE 6006
+CMD ["npm", "run", "storybook", "--", "--host", "0.0.0.0", "--port", "6006"]
+
+FROM frontend-base AS frontend-tests
+CMD ["npm", "run", "test:coverage"]
+
+FROM cypress/included:14.5.4 AS cypress-tests
+WORKDIR /e2e
+COPY tests/cypress/package*.json ./
+RUN npm ci
+COPY tests/cypress .
+CMD ["npm", "run", "run:auth:ci"]
+
 FROM build AS publish
 WORKDIR /src
 RUN dotnet publish src/BLA.Ordering.Web/BLA.Ordering.Web.csproj -c Release -o /app/publish /p:UseAppHost=false

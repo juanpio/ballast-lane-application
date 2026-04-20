@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { OrderGrid } from './OrderGrid';
-import { OrderDto } from '../types';
+import { OrderGrid } from '../components/OrderGrid';
+import type { OrderDto } from '../types';
 
 const meta = {
   title: 'Features/Orders/OrderGrid',

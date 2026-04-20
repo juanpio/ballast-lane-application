@@ -1,4 +1,4 @@
-import { OrderDto, OrderTrackingEvent, OrderStatus } from '../types';
+import type { OrderDto, OrderTrackingEvent, OrderStatus } from '../types';
 
 interface OrderTrackingProps {
   order: OrderDto | null;

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { OrderDetail } from '../components/OrderDetail';
-import { OrderDto } from '../types';
+import type { OrderDto } from '../types';
 
 describe('OrderDetail', () => {
   const mockOrder: OrderDto = {

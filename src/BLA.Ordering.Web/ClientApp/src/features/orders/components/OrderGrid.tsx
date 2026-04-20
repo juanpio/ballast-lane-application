@@ -1,4 +1,4 @@
-import { OrderDto, OrderStatus } from '../types';
+import type { OrderDto } from '../types';
 
 interface OrderGridProps {
   orders: OrderDto[];

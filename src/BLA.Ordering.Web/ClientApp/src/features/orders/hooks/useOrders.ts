@@ -4,17 +4,17 @@
  */
 
 import { useState } from 'react';
-import { OrderDto, OrdersListParams, OrdersListResponse } from '../types';
+import type { OrdersListParams, OrdersListResponse } from '../types';
 
 export function useOrders(initialParams: OrdersListParams = { page: 1, pageSize: 10 }) {
-  const [data, setData] = useState<OrdersListResponse>({
+  const [data] = useState<OrdersListResponse>({
     data: [],
     total: 0,
     page: initialParams.page,
     pageSize: initialParams.pageSize,
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   // TODO: Implement fetching logic
   // const fetchOrders = async (params: OrdersListParams) => { ... }

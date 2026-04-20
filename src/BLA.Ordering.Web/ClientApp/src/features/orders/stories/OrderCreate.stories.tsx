@@ -87,7 +87,7 @@ export const SubmittingOrder: Story = {
   args: {
     isLoading: true,
     error: null,
-    onSubmit: async (data) => {
+    onSubmit: async () => {
       // Simulating slow submission
       await new Promise((resolve) => setTimeout(resolve, 2000));
       alert(`Order created successfully!`);

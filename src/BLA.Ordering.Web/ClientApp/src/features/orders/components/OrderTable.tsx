@@ -1,4 +1,4 @@
-import { OrderDto, OrdersListParams } from '../types';
+import type { OrderDto } from '../types';
 
 interface OrderTableProps {
   orders: OrderDto[];

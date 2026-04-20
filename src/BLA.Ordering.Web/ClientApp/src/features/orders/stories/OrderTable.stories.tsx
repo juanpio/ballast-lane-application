@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { OrderTable } from '../components/OrderTable';
-import { OrderDto } from '../types';
+import type { OrderDto } from '../types';
 
 const meta = {
   title: 'Features/Orders/OrderTable',

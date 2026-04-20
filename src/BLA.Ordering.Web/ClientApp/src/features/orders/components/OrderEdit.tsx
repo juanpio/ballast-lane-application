@@ -1,4 +1,4 @@
-import { OrderDto, UpdateOrderRequest, OrderStatus } from '../types';
+import type { OrderDto, UpdateOrderRequest, OrderStatus } from '../types';
 
 interface OrderEditProps {
   order: OrderDto | null;

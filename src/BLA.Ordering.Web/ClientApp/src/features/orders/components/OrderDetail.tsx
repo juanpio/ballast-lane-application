@@ -1,4 +1,4 @@
-import { OrderDto } from '../types';
+import type { OrderDto } from '../types';
 
 interface OrderDetailProps {
   order: OrderDto | null;

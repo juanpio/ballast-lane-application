@@ -59,21 +59,69 @@ services:
     volumes:
       - ./:/workspace
 
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-development
+    container_name: bla-frontend
+    profiles:
+      - frontend
+    ports:
+      - "5173:5173"
+    environment:
+      CI: "true"
+    volumes:
+      - ./src/BLA.Ordering.Web/ClientApp:/app
+      - frontend_nm:/app/node_modules
+
   cypress:
-    image: cypress/included:14.5.4
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cypress-tests
     container_name: bla-cypress
     profiles:
       - e2e
-    working_dir: /e2e
     depends_on:
       - backend
     environment:
       CI: "true"
+
+  storybook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-storybook
+    container_name: bla-storybook
+    profiles:
+      - storybook
+    ports:
+      - "6006:6006"
+    environment:
+      CI: "true"
     volumes:
-      - ./tests/cypress:/e2e
-    entrypoint: ["/bin/sh", "-lc"]
-    command: ["npm ci && npm run run:auth:ci"]
+      - ./src/BLA.Ordering.Web/ClientApp:/app
+      - storybook_nm:/app/node_modules
+
+  frontend-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-tests
+    container_name: bla-frontend-tests
+    profiles:
+      - frontend-tests
+    volumes:
+      - ./src/BLA.Ordering.Web/ClientApp:/app
+      - frontend_tests_nm:/app/node_modules
+      - ./src/BLA.Ordering.Web/ClientApp/coverage:/app/coverage
+    environment:
+      CI: "true"
 
 volumes:
   postgres_data:
   seq_data:
+  frontend_nm:
+  storybook_nm:
+  frontend_tests_nm:
