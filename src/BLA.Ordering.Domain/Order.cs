@@ -1,4 +1,6 @@
-﻿namespace BLA.Ordering.Domain;
+﻿using BLA.Ordering.Domain.ValueObjects;
+
+namespace BLA.Ordering.Domain;
 
 public class Order
 {

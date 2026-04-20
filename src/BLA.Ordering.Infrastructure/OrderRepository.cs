@@ -1,4 +1,6 @@
-﻿namespace BLA.Ordering.Infrastructure;
+﻿using BLA.Ordering.Domain;
+
+namespace BLA.Ordering.Infrastructure;
 
 public interface IUnitOfWork
 {
@@ -27,8 +29,15 @@ public class OrderRepository : IOrderRepository
 {
     public Task<Order> GetByIdAsync(string id)
     {
-        // In a real implementation, this would retrieve the order from the database
-        return Task.FromResult(new Order { Id = id });
+        // TODO: implement with parameterized NpgsqlCommand (ADR 005)
+        return Task.FromResult(new Order
+        {
+            Id = id,
+            CustomerId = string.Empty,
+            OrderDate = DateTime.UtcNow,
+            ShippingAddress = string.Empty,
+            TotalAmount = Domain.ValueObjects.Money.USD(0)
+        });
     }
 
     public Task SaveAsync(Order entity)
