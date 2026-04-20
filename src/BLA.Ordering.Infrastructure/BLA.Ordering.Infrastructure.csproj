@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BLA.Ordering.Domain\BLA.Ordering.Domain.csproj" />
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
   </ItemGroup>
 
   <PropertyGroup>
