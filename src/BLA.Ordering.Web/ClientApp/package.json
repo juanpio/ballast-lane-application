@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "bundle:report": "BUNDLE_ANALYZE=true vite build"
   },
   "dependencies": {
     "react": "^19.2.4",
@@ -45,6 +48,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
     "vite": "^8.0.4",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "rollup-plugin-visualizer": "^6.0.5"
   }
 }
