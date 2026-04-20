@@ -9,9 +9,21 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.3.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\BLA.Ordering.Infrastructure\BLA.Ordering.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\BLA.Ordering.Domain\BLA.Ordering.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

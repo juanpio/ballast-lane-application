@@ -1,4 +1,4 @@
-using BLA.Ordering.Application.Auth;
+using BLA.Ordering.Domain.Interfaces;
 
 namespace BLA.Ordering.Infrastructure.Auth;
 
