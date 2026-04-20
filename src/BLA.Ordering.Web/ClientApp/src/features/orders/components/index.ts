@@ -8,3 +8,4 @@ export { OrderTracking } from './OrderTracking';
 export { OrderCreate } from './OrderCreate';
 export { OrderDetail } from './OrderDetail';
 export { OrderEdit } from './OrderEdit';
+export { OrderDeleteDialog } from './OrderDeleteDialog';
