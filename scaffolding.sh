@@ -15,7 +15,9 @@ dotnet new classlib -o src/BLA.Ordering.Infrastructure
 dotnet new web -o src/BLA.Ordering.Web
 
 # Create Test projects
+dotnet new xunit -o tests/UnitTests/BLA.Ordering.Domain.Tests
 dotnet new xunit -o tests/UnitTests/BLA.Ordering.Application.Tests
+dotnet new xunit -o tests/UnitTests/BLA.Ordering.Infrastructure.Tests
 dotnet new xunit -o tests/IntegrationTests/BLA.Ordering.Web.API.Tests
 
 # Add projects to solution
@@ -24,6 +26,8 @@ dotnet sln add src/BLA.Ordering.Application/BLA.Ordering.Application.csproj
 dotnet sln add src/BLA.Ordering.Infrastructure/BLA.Ordering.Infrastructure.csproj
 dotnet sln add src/BLA.Ordering.Web/BLA.Ordering.Web.csproj
 dotnet sln add tests/UnitTests/BLA.Ordering.Application.Tests/BLA.Ordering.Application.Tests.csproj
+dotnet sln add tests/UnitTests/BLA.Ordering.Infrastructure.Tests/BLA.Ordering.Infrastructure.Tests.csproj
+dotnet sln add tests/UnitTests/BLA.Ordering.Domain.Tests/BLA.Ordering.Domain.Tests.csproj
 dotnet sln add tests/IntegrationTests/BLA.Ordering.Web.API.Tests/BLA.Ordering.Web.API.Tests.csproj
 
 # Add project references
