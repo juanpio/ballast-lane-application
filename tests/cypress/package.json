@@ -1,0 +1,23 @@
+{
+  "name": "bla-ordering-cypress",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "open": "cypress open",
+    "run": "cypress run",
+    "run:headed": "cypress run --headed",
+    "verify": "cypress verify",
+    "open:auth": "wait-on http-get://localhost:5178/account/login && cypress open --e2e --config baseUrl=http://localhost:5178",
+    "run:auth": "wait-on http-get://localhost:5178/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:5178",
+    "run:auth:headed": "wait-on http-get://localhost:5178/account/login && cypress run --headed --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:5178",
+    "run:auth:ci": "wait-on http-get://backend:5178/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://backend:5178"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "cypress": "^14.5.2",
+    "cypress-axe": "^1.6.0",
+    "typescript": "^5.7.2",
+    "wait-on": "^8.0.3"
+  }
+}
