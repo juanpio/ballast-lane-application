@@ -16,6 +16,10 @@
 - On success, display confirmation feedback and redirect to login
 - On failure, display inline validation errors without page reload
 - Registration request logged via Serilog middleware with correlation ID; no PII in logs (ADR 010)
+- Registration successful should confirmation page, then redirect to login after delay
+- Specific password strength requirements: Minimum 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+- Registration route be: /account/create
+- For client-side form validation: validation + inline error messages (no framework)
 
 ---
 
@@ -40,10 +44,15 @@
 
 ## US-003: Order Management (CRUD)
 **As a** logged-in user  
-**I want to** create, read, update, and delete orders  
+**I want to** create, read, update, and delete orders with identifier, customer identifier, ship address and total amount with currency.
 **So that** I can manage my business operations
 
 **Acceptance Criteria:**
+### Order
+- Identifier can be a string of chars, number and or special characters.
+- Customer must be the same as the login user who create the order.
+- Currently system supports only USD and EUR currencies.
+- Amount decimal precision at the UI must be 2 digits but full at storage
 
 ### Create
 - Form submission stores order in PostgreSQL `domain` schema via ADO.NET parameterized queries (ADR 005)
