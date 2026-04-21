@@ -1,7 +1,11 @@
 using BLA.Ordering.Infrastructure.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
@@ -44,6 +48,28 @@ public sealed class OrdersApiTestFixture : IAsyncLifetime
                     };
 
                     configBuilder.AddInMemoryCollection(inMemoryConfig);
+                });
+
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<NpgsqlDataSource>();
+                    services.AddSingleton(_ => NpgsqlDataSource.Create(_container.GetConnectionString()));
+
+                    services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+                    {
+                        options.TokenValidationParameters.ValidateIssuer = false;
+                        options.TokenValidationParameters.ValidateAudience = false;
+                        options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+                        options.TokenValidationParameters.RequireSignedTokens = false;
+                    });
+
+                    services.PostConfigure<AuthorizationOptions>(options =>
+                    {
+                        options.AddPolicy("ApiJwtPolicy", policy =>
+                        {
+                            policy.RequireAuthenticatedUser();
+                        });
+                    });
                 });
             });
     }

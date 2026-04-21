@@ -28,6 +28,35 @@ public sealed class AuthApiController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<ActionResult<AuthenticateUserResult>> Register(
+        [FromBody] RegisterRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new RegisterUserCommand(request.Email, request.Password, request.PasswordConfirmation);
+        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.Errors)
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+
+            return ValidationProblem(ModelState);
+        }
+
+        try
+        {
+            var result = await _handler.HandleAsync(command, cancellationToken);
+            await SignInCookieAsync(result, cancellationToken);
+            return CreatedAtAction(nameof(Register), result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Registration failed: {Message}", ex.Message);
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<AuthenticateUserResult>> Login(
         [FromBody] LoginRequest request,
