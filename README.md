@@ -212,6 +212,21 @@ To stop and remove containers:
 docker compose down
 ```
 
+### Docker Helper Scripts
+
+Use the helper scripts from the repository root to run frontend and Storybook quickly:
+
+```bash
+# Frontend only
+./scripts/docker/up-frontend.sh
+
+# Storybook only
+./scripts/docker/up-storybook.sh
+
+# Frontend + Storybook together
+./scripts/docker/up-frontend-storybook.sh
+```
+
 ### Manual Setup (without Docker)
 
 ```bash
