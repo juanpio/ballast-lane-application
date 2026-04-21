@@ -7,6 +7,7 @@ using BLA.Ordering.Application.Orders.Validators;
 using BLA.Ordering.Domain.Interfaces;
 using BLA.Ordering.Infrastructure.Auth;
 using BLA.Ordering.Infrastructure.Persistence.Repositories;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -89,6 +90,22 @@ try
         });
     });
 
+    builder.Services
+        .AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = ApiVersionReader.Combine(
+                new HeaderApiVersionReader("api-version"),
+                new UrlSegmentApiVersionReader());
+        })
+        .AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
     // Infrastructure
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -121,6 +138,40 @@ try
             diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
             diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
         };
+    });
+
+    app.Use(async (context, next) =>
+    {
+        // Support URL segment versioning centrally: /api/v{version}/... -> /api/...
+        var path = context.Request.Path.Value;
+        if (!string.IsNullOrWhiteSpace(path)
+            && path.StartsWith("/api/v", StringComparison.OrdinalIgnoreCase))
+        {
+            var versionAndRemainder = path["/api/v".Length..];
+            var separatorIndex = versionAndRemainder.IndexOf('/');
+            if (separatorIndex > 0)
+            {
+                var requestedVersion = versionAndRemainder[..separatorIndex];
+                if (Version.TryParse(requestedVersion, out _))
+                {
+                    if (!context.Request.Headers.ContainsKey("api-version"))
+                        context.Request.Headers["api-version"] = requestedVersion;
+
+                    var rewrittenPath = "/api" + versionAndRemainder[separatorIndex..];
+                    context.Request.Path = rewrittenPath;
+                }
+            }
+        }
+
+        // Support legacy header name during transition.
+        if (!context.Request.Headers.ContainsKey("api-version")
+            && context.Request.Headers.TryGetValue("x-version", out var legacyApiVersion)
+            && !string.IsNullOrWhiteSpace(legacyApiVersion.ToString()))
+        {
+            context.Request.Headers["api-version"] = legacyApiVersion.ToString();
+        }
+
+        await next();
     });
 
     app.UseStaticFiles();

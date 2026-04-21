@@ -3,12 +3,14 @@ using BLA.Ordering.Application.Orders.Commands;
 using BLA.Ordering.Application.Orders.Dtos;
 using BLA.Ordering.Application.Orders.Queries;
 using BLA.Ordering.Application.Orders.Validators;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BLA.Ordering.Web.Api;
 
 [ApiController]
+[ApiVersion("1.0")]
 [Route("api/orders")]
 [Authorize(Policy = "ApiJwtPolicy")]
 public sealed class OrdersController : ControllerBase

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BLA.Ordering.Application.Auth.Commands;
 using BLA.Ordering.Application.Auth.Dtos;
 using BLA.Ordering.Application.Auth.Validators;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -10,31 +11,38 @@ using Microsoft.AspNetCore.Mvc;
 namespace BLA.Ordering.Web.Api;
 
 [ApiController]
+[ApiVersion("1.0")]
 [Route("api/auth")]
 public sealed class AuthApiController : ControllerBase
 {
-    private readonly AuthenticateUserCommandHandler _handler;
-    private readonly AuthenticateUserValidator _validator;
+    private readonly RegisterUserCommandHandler _registerHandler;
+    private readonly RegisterUserValidator _registerValidator;
+    private readonly AuthenticateUserCommandHandler _authenticateHandler;
+    private readonly AuthenticateUserValidator _authenticateValidator;
     private readonly ILogger<AuthApiController> _logger;
 
     public AuthApiController(
-        AuthenticateUserCommandHandler handler,
-        AuthenticateUserValidator validator,
+        RegisterUserCommandHandler registerHandler,
+        RegisterUserValidator registerValidator,
+        AuthenticateUserCommandHandler authenticateHandler,
+        AuthenticateUserValidator authenticateValidator,
         ILogger<AuthApiController> logger)
     {
-        _handler = handler;
-        _validator = validator;
+        _registerHandler = registerHandler;
+        _registerValidator = registerValidator;
+        _authenticateHandler = authenticateHandler;
+        _authenticateValidator = authenticateValidator;
         _logger = logger;
     }
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<AuthenticateUserResult>> Register(
-        [FromBody] RegisterRequest request,
+    public async Task<ActionResult<RegisterUserResult>> Register(
+        [FromBody] RegisterUserRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new RegisterUserCommand(request.Email, request.Password, request.PasswordConfirmation);
-        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        var command = new RegisterUserCommand(request.Email, request.Password);
+        var validationResult = await _registerValidator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
             foreach (var error in validationResult.Errors)
@@ -45,8 +53,7 @@ public sealed class AuthApiController : ControllerBase
 
         try
         {
-            var result = await _handler.HandleAsync(command, cancellationToken);
-            await SignInCookieAsync(result, cancellationToken);
+            var result = await _registerHandler.HandleAsync(command, cancellationToken);
             return CreatedAtAction(nameof(Register), result);
         }
         catch (InvalidOperationException ex)
@@ -63,7 +70,7 @@ public sealed class AuthApiController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new AuthenticateUserCommand(request.Email, request.Password);
-        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        var validationResult = await _authenticateValidator.ValidateAsync(command, cancellationToken);
         if (!validationResult.IsValid)
         {
             foreach (var error in validationResult.Errors)
@@ -74,7 +81,7 @@ public sealed class AuthApiController : ControllerBase
 
         try
         {
-            var result = await _handler.HandleAsync(command, cancellationToken);
+            var result = await _authenticateHandler.HandleAsync(command, cancellationToken);
             await SignInCookieAsync(result, cancellationToken);
             return Ok(result);
         }
