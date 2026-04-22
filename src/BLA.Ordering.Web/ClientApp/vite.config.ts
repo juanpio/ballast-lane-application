@@ -4,6 +4,8 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
+  publicDir: 'public',
+  assetsInclude: ['**/*.woff', '**/*.woff2', '**/*.ttf', '**/*.otf'],
   plugins: [
     react(),
     ...(process.env.BUNDLE_ANALYZE === 'true'
@@ -17,4 +19,16 @@ export default defineConfig({
         ]
       : []),
   ],
+  build: {
+    outDir: '../wwwroot/app',
+    emptyOutDir: true,
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/dashboard.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/dashboard[extname]',
+      },
+    },
+  },
 })

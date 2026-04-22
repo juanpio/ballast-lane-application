@@ -5,6 +5,7 @@ using BLA.Ordering.Application.Auth.Validators;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,7 +93,26 @@ public sealed class AuthApiController : ControllerBase
         }
     }
 
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+    [HttpGet("session")]
+    public ActionResult<object> GetSession()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(userId))
+            return Unauthorized(new { message = "Authenticated user context is incomplete." });
+
+        return Ok(new
+        {
+            isAuthenticated = true,
+            userId,
+            email,
+            authenticationType = User.Identity?.AuthenticationType
+        });
+    }
+
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {

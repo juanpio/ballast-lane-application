@@ -210,6 +210,10 @@ function DashboardShell() {
 function AppShell() {
   const { isAuthenticated, isLoading, error, login } = useAuth()
 
+  if (isLoading) {
+    return <p>Loading authenticated session...</p>
+  }
+
   if (!isAuthenticated) {
     return <LoginForm isLoading={isLoading} error={error} onSubmit={login} />
   }
