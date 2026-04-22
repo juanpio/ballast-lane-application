@@ -6,6 +6,7 @@
 **/obj
 **/node_modules
 **/dist
+**/wwwroot/app
 **/.vite
 **/.cache
 **/coverage
