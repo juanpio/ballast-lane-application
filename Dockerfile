@@ -48,6 +48,9 @@ CMD ["npm", "run", "storybook", "--", "--host", "0.0.0.0", "--port", "6006"]
 FROM frontend-base AS frontend-tests
 CMD ["npm", "run", "test:coverage"]
 
+FROM frontend-base AS frontend-build
+RUN npm run build
+
 FROM cypress/included:14.5.4 AS cypress-tests
 WORKDIR /e2e
 COPY tests/cypress/package*.json ./
@@ -57,6 +60,7 @@ CMD ["npm", "run", "run:auth:ci"]
 
 FROM build AS publish
 WORKDIR /src
+COPY --from=frontend-build /wwwroot/app ./src/BLA.Ordering.Web/wwwroot/app
 RUN dotnet publish src/BLA.Ordering.Web/BLA.Ordering.Web.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS production

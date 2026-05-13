@@ -38,6 +38,7 @@ pnpm-debug.log*
 **/build/
 **/.vite/
 **/.cache/
+**/wwwroot/app
 
 # Storybook
 **/storybook-static/

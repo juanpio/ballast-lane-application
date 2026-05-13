@@ -2,20 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="application-name" content="Ballast Lane Application" />
     <meta property="og:site_name" content="Ballast Lane Application" />
+    <link rel="stylesheet" href="~/css/globals.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/app/assets/dashboard.css" asp-append-version="true" />
+    <script>
+        (function () {
+            const key = 'bla-theme';
+            const stored = localStorage.getItem(key);
+            if (stored === 'light' || stored === 'dark') {
+                document.documentElement.setAttribute('data-theme', stored);
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        })();
+    </script>
     @RenderSection("Meta", required: false)
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
     <a class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:rounded focus:shadow"
        href="#main-content">
         Skip to main content
     </a>
+    <div class="fixed right-4 top-4 z-50">
+        <button id="theme-toggle"
+                type="button"
+                class="rounded-md border border-gray-300 bg-white/95 px-3 py-1.5 text-sm font-medium text-gray-900 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                aria-live="polite"
+                aria-label="Toggle theme">
+            Theme: System
+        </button>
+    </div>
     <main id="main-content">
         @RenderBody()
     </main>
+    <script>
+        (function () {
+            const key = 'bla-theme';
+            const options = ['system', 'light', 'dark'];
+            const button = document.getElementById('theme-toggle');
+            if (!button) {
+                return;
+            }
+
+            function label(theme) {
+                return theme.charAt(0).toUpperCase() + theme.slice(1);
+            }
+
+            function apply(theme) {
+                if (theme === 'light' || theme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', theme);
+                    localStorage.setItem(key, theme);
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.removeItem(key);
+                }
+
+                button.textContent = 'Theme: ' + label(theme);
+                button.setAttribute('aria-label', 'Current theme ' + label(theme) + '. Click to change theme');
+                button.dataset.theme = theme;
+            }
+
+            const saved = localStorage.getItem(key);
+            const initial = saved === 'light' || saved === 'dark' ? saved : 'system';
+            apply(initial);
+
+            button.addEventListener('click', function () {
+                const current = button.dataset.theme || 'system';
+                const next = options[(options.indexOf(current) + 1) % options.length];
+                apply(next);
+            });
+        })();
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

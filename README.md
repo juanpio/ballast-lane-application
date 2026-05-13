@@ -200,7 +200,7 @@ Once running:
 
 | Service | URL |
 |---|---|
-| Application | http://localhost:5178 |
+| Application | http://localhost:8080 |
 | Vite Dev Server (HMR) | http://localhost:5173 |
 | Seq (logs) | http://localhost:5341 |
 | Jaeger (traces) | http://localhost:16686 |
@@ -270,7 +270,7 @@ dotnet test tests/IntegrationTests
 # E2E tests (local development in browser)
 cd tests/cypress && npm run open:auth
 
-# E2E tests (local headless smoke against localhost:5178)
+# E2E tests (local headless smoke against localhost:8080)
 cd tests/cypress && npm run run:auth
 
 # E2E tests (CI/container headless smoke)

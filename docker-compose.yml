@@ -24,7 +24,7 @@ services:
       ACCEPT_EULA: "Y"
       SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     ports:
-      - "5341:80"
+      - "5341:5341"
     volumes:
       - seq_data:/data
 
@@ -40,15 +40,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: bla-backend
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      DOTNET_WATCH_LAUNCH_BROWSER: "false"
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bla_ordering};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Serilog__WriteTo__1__Args__serverUrl: http://seq:80
     ports:
-      - "5178:5178"
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,8 +55,6 @@ services:
         condition: service_started
       jaeger:
         condition: service_started
-    volumes:
-      - ./:/workspace
 
   cypress:
     image: cypress/included:14.5.4

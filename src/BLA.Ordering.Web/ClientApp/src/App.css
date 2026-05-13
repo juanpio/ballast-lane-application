@@ -21,7 +21,7 @@
 
 .auth-panel p {
   margin: 0.5rem 0 1rem;
-  color: #4b5563;
+  color: var(--accent);
 }
 
 .auth-form {
