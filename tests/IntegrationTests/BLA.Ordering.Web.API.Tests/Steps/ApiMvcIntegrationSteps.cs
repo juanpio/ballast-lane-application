@@ -14,7 +14,7 @@ public sealed class ApiMvcIntegrationSteps : IAsyncDisposable
 {
     private const string BaseUrlEnvName = "BLA_INTEGRATION_BASE_URL";
     private const string DbConnectionEnvName = "BLA_INTEGRATION_DB_CONNECTION";
-    private const string DefaultBaseUrl = "http://localhost:5178";
+    private const string DefaultBaseUrl = "http://localhost:8080";
     private const string DefaultDbConnection = "Host=localhost;Port=5432;Database=bla_ordering;Username=postgres;Password=postgres";
 
     private readonly HttpClient _httpClient;

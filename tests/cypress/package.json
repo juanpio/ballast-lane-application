@@ -8,10 +8,10 @@
     "run": "cypress run",
     "run:headed": "cypress run --headed",
     "verify": "cypress verify",
-    "open:auth": "wait-on http-get://localhost:5178/account/login && cypress open --e2e --config baseUrl=http://localhost:5178",
-    "run:auth": "wait-on http-get://localhost:5178/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:5178",
-    "run:auth:headed": "wait-on http-get://localhost:5178/account/login && cypress run --headed --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:5178",
-    "run:auth:ci": "wait-on http-get://backend:5178/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://backend:5178"
+    "open:auth": "wait-on http-get://localhost:8080/account/login && cypress open --e2e --config baseUrl=http://localhost:8080",
+    "run:auth": "wait-on http-get://localhost:8080/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:8080",
+    "run:auth:headed": "wait-on http-get://localhost:8080/account/login && cypress run --headed --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://localhost:8080",
+    "run:auth:ci": "wait-on http-get://backend:8080/account/login && cypress run --spec e2e/auth-critical-flow.cy.ts --config baseUrl=http://backend:8080"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

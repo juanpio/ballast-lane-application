@@ -1,0 +1,200 @@
+### Variables
+@baseUrl = http://localhost:8080
+@apiUrl = {{baseUrl}}/api
+@contentType = application/json
+@apiVersion = 1.0
+
+### ============================================================================
+### Authentication / JWT Tests
+### ============================================================================
+
+### 1. Register a new user
+POST {{apiUrl}}/auth/register
+Content-Type: {{contentType}}
+api-version: {{apiVersion}}
+
+{
+    "email": "testuser@example.com",
+    "password": "SecurePassword123!",
+    "confirmPassword": "SecurePassword123!",
+    "firstName": "Test",
+    "lastName": "User"
+}
+
+### 2. Login and obtain JWT token
+# @name login
+POST {{apiUrl}}/auth/login
+Content-Type: {{contentType}}
+api-version: {{apiVersion}}
+
+{
+    "email": "testuser@example.com",
+    "password": "SecurePassword123!"
+}
+
+### Store JWT from login response
+@jwt = {{login.response.body.token}}
+
+### 3. Refresh JWT token
+POST {{baseUrl}}/auth/refresh
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 4. Logout (invalidate token)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 5. Attempt API call with invalid token (should fail)
+GET {{apiUrl}}/orders
+Authorization: Bearer invalid_token_here
+api-version: {{apiVersion}}
+
+### 6. Attempt API call without token (should fail)
+GET {{apiUrl}}/orders
+api-version: {{apiVersion}}
+
+### ============================================================================
+### Orders API Tests (with JWT authentication)
+### ============================================================================
+
+### 7. Get all orders (authenticated)
+GET {{apiUrl}}/orders
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 8. Get all orders with pagination
+GET {{apiUrl}}/orders?pageNumber=1&pageSize=10
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 9. Get all orders with filters
+GET {{apiUrl}}/orders?status=pending&sortBy=createdDate&sortOrder=desc
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 10. Get single order by ID
+GET {{apiUrl}}/orders/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 11. Create order
+# @name createOrder
+POST {{apiUrl}}/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+{
+    "customerId": "550e8400-e29b-41d4-a716-446655440001",
+    "orderDate": "2024-01-15T10:30:00Z",
+    "status": "pending",
+    "totalAmount": 299.99,
+    "items": [
+        {
+            "productId": "550e8400-e29b-41d4-a716-446655440002",
+            "quantity": 2,
+            "unitPrice": 149.99
+        }
+    ]
+}
+
+### Store created order ID
+@orderId = {{createOrder.response.body.id}}
+
+### 12. Update order
+PATCH {{apiUrl}}/orders/{{orderId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+{
+    "status": "processing",
+    "totalAmount": 299.99
+}
+
+### 13. Delete order
+DELETE {{apiUrl}}/orders/{{orderId}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 14. Get non-existent order (should return 404)
+GET {{apiUrl}}/orders/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### ============================================================================
+### Error Handling Tests
+### ============================================================================
+
+### 15. Create order with invalid data (missing required fields)
+POST {{apiUrl}}/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+{
+    "status": "pending"
+}
+
+### 16. Create order with invalid amount
+POST {{apiUrl}}/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+{
+    "customerId": "550e8400-e29b-41d4-a716-446655440001",
+    "orderDate": "2024-01-15T10:30:00Z",
+    "status": "pending",
+    "totalAmount": -50.00
+}
+
+### 17. Update order with invalid status
+PATCH {{apiUrl}}/orders/{{orderId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+{
+    "status": "invalid_status"
+}
+
+### ============================================================================
+### Authorization Tests
+### ============================================================================
+
+### 18. Access admin endpoint with regular user token (should fail)
+GET {{apiUrl}}/admin/users
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 19. Access with expired token simulation
+GET {{apiUrl}}/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDAwMDAwMDB9.test_expired_token
+api-version: {{apiVersion}}
+
+### ============================================================================
+### Health & Diagnostics
+### ============================================================================
+
+### 20. Health check (no auth required)
+GET {{baseUrl}}/health
+
+### 21. API version check
+GET {{baseUrl}}/api/version
+
+### ============================================================================
+### Token Inspection (if endpoint exists)
+### ============================================================================
+
+### 22. Validate current JWT
+POST {{baseUrl}}/auth/validate
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
+
+### 23. Get current user info
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{jwt}}
+api-version: {{apiVersion}}
